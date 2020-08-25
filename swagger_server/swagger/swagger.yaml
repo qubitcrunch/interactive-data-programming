@@ -1,0 +1,65 @@
+openapi: 3.0.0
+info:
+  title: Interactive Data Programming API
+  description: This is an API for interactive data programming.
+  contact:
+    email: you@your-company.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+servers:
+- url: https://virtserver.swaggerhub.com/qubitcrunch/interactive-data-programming/1.0.0
+  description: SwaggerHub API Auto Mocking
+tags:
+- name: admins
+  description: Secured Admin-only calls
+- name: developers
+  description: Operations available to regular developers
+paths:
+  /weakly_label:
+    post:
+      summary: Run algorithm to weakly label data points.
+      description: POST an instruction for weakly labeling data points
+      operationId: weakly_label
+      responses:
+        "200":
+          description: Data points weakly labeled!
+        "404":
+          description: Weak labeling was not succesful. Please investigate.
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /labeling_functions:
+    get:
+      summary: Return the list of labeling functions.
+      description: GET the list of labeling functions
+      operationId: labeling_functions_return
+      responses:
+        "200":
+          description: Data points weakly labeled!
+        "404":
+          description: Weak labeling was not succesful. Please investigate.
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /labeling_function_new:
+    post:
+      summary: Provide a new labeling function.
+      description: POST a new labeling function.
+      operationId: labeling_function_new
+      responses:
+        "200":
+          description: New labeling functions provided!
+        "404":
+          description: Labeling functions were not returned. Please investigate.
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /batch_unlabeled:
+    get:
+      summary: Return a batch of unlabeled data.
+      description: GET the batch of unlabeled data.
+      operationId: batch_unlabeled_return
+      responses:
+        "200":
+          description: Batch returned!
+        "404":
+          description: Batch was not returned. Please investigate.
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+components: {}
+
