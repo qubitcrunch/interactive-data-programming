@@ -9,7 +9,7 @@ from sklearn.metrics import precision_recall_fscore_support
 
 import snorkel
 from snorkel.labeling import labeling_function, LabelingFunction,LFAnalysis
-from metal import LabelModel 
+from snorkel.labeling.model import LabelModel
 from snorkel.labeling import PandasLFApplier
 
 

@@ -26,7 +26,7 @@ def labeling_functions_return():  # noqa: E501
     return [lf.name for lf in get_lfs_from_module()]
 
 
-def weakly_label(type="random"):
+def weakly_label(type="snorkel"):
 
     if type == "random":
         predictions = [random.uniform(0, 1) for i in range(project["data"]["unlabeled"].shape[0])]

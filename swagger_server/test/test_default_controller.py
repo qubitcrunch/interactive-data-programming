@@ -49,9 +49,11 @@ class TestDefaultController(BaseTestCase):
 
         Run algorithm to weakly label data points.
         """
+        query_string = [('weak', 'weak_example')]
         response = self.client.open(
             '/qubitcrunch/interactive-data-programming/1.0.0/weakly_label',
-            method='POST')
+            method='POST',
+            query_string=query_string)
         self.assert200(response,
                        'Response body is : ' + response.data.decode('utf-8'))
 

@@ -22,6 +22,15 @@ paths:
       summary: Run algorithm to weakly label data points.
       description: POST an instruction for weakly labeling data points
       operationId: weakly_label
+      parameters:
+      - name: weak
+        in: query
+        description: name of weak labeling algorithm to be used
+        required: true
+        style: form
+        explode: false
+        schema:
+          type: string
       responses:
         "200":
           description: Data points weakly labeled!
