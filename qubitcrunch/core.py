@@ -1,40 +1,45 @@
-#from metal.label_model import LabelModel, EndModel
 from qubitcrunch.utils import *
-import random
 import pandas as pd
+from scipy.stats import entropy
 
 project = {
-	"data": {"labeled":[],"unlabeled":[]},
+	"data": {"labeled":[],"unlabeled":[],"predictions":[]},
 	"labeling_functions":[],
 }
 project["data"]["unlabeled"] = pd.read_csv("data/ag_news/ag_news_train.csv")["body"]
+project["data"]["label_cardinality"] = 4
 
 def batch_unlabeled_return():  # noqa: E501
     """
     Return the next batch of unlabeled documents, for now 1000 docs at random
     """
-    if project["predictions"] != None:
-        idx = [i for i in range(len(project["predictions"])) if .4 < project["predictions"][i] < .6]
-        return list(project["data"]["unlabeled"][idx[0:999]])
-    else:
-        return "No batch returned"
+
+    entropies = [entropy(row,base=2) for row in project["data"]["predictions"]]
+    sorted = np.argsort(entropies)
+    idx = sorted[::-1][:1000]
+
+    return list(project["data"]["unlabeled"][idx])
 
 def labeling_functions_return():  # noqa: E501
     """
     Return the list of labeling functions.
     """
+
     return [lf.name for lf in get_lfs_from_module()]
 
+def labeling_function_new(labeling_function_str,module_file_path="qubitcrunch/labeling_functions.py",):
 
-def weakly_label(type="snorkel"):
+    with open(module_file_path,"a") as file:
+        file.write("\n\n")
+        file.write("@labeling_function()\n")
+        file.write(labeling_function_str)
+    file.close()
 
-    if type == "random":
-        predictions = [random.uniform(0, 1) for i in range(project["data"]["unlabeled"].shape[0])]
-    if type == "snorkel":
+def weakly_label(weak="snorkel"):
+
+    if weak == "snorkel":
         all_lfs = get_lfs_from_module()
-        label_matrix = snorkel_applier(all_lfs, project["unlabeled"])
-        snorkel_model = train_snorkel_model(label_matrix,project["label_cardinality"])
-        predictions = predict_snorkel_labels(snorkel_model,label_matrix)
-    if type == "max-ent":
-        predictions = None
-    project["predictions"] = predictions
+        label_matrix = snorkel_applier(all_lfs, project["data"]["unlabeled"])
+        snorkel_model = train_snorkel_model(label_matrix, cardinality=project["data"]["label_cardinality"])
+        snorkel_labels = snorkel_model.predict_proba(L=label_matrix)
+        project["data"]["predictions"] = snorkel_labels

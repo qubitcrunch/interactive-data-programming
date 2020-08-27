@@ -1,44 +1,34 @@
-import torch
-import torchtext
-from torchtext.datasets import text_classification
-import metal
-import scipy as sp
-NGRAMS = 2
-import os
-if not os.path.isdir('./.data'):
-    os.mkdir('./.data')
-train_dataset, test_dataset = text_classification.DATASETS['AG_NEWS'](
-    root='./.data', ngrams=NGRAMS, vocab=None)
-BATCH_SIZE = 16
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+from qubitcrunch.core import *
+import inspect
+print(labeling_functions_return())
+try:
+    weakly_label(weak="snorkel")
+except:
+    print("weak labeling errored!")
+
+def lf_new_science_term(x):
+    if type(x) == pd.core.series.Series:
+        x = x.body
+    if type(x) != str:
+        x = str(x)
+
+    tokenizer = get_tokenizer("basic_english")
+    tokens = tokenizer(x)
+
+    automobile_terms = ["atom"]
+    for token in tokens:
+        if token in automobile_terms:
+            return 3
+        else:
+            return -1
+
+labeling_function_str=inspect.getsource(lf_new_science_term)
+labeling_function_new(labeling_function_str)
+importlib.import_module("qubitcrunch.labeling_functions")
+all_lfs = [obj for name, obj in inspect.getmembers(sys.modules["qubitcrunch.labeling_functions"]) if isinstance(obj, snorkel.labeling.lf.core.LabelingFunction)]
+print(all_lfs)
 
 
-import IPython
-IPython.embed()
-"""
-data = 
-n = # data points
-m = # labeling functions
-k = cardinality of the classification task
-
-Load for each split:
-L: an [n,m] scipy.sparse label matrix of noisy labels
-Y: an n-dim numpy.ndarray of target labels
-X: an n-dim iterable (e.g., a list) of end model inputs
 
 
-from metal.label_model import LabelModel, EndModel
-
-# Train a label model and generate training labels
-label_model = LabelModel(k)
-label_model.train_model(L_train)
-Y_train_probs = label_model.predict_proba(L_train)
-
-# Train a discriminative end model with the generated labels
-end_model = EndModel([1000,10,2])
-end_model.train_model(train_data=(X_train, Y_train_probs), valid_data=(X_dev, Y_dev))
-
-# Evaluate performance
-score = end_model.score(data=(X_test, Y_test), metric="accuracy")
-"""
 

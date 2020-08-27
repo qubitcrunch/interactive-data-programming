@@ -4,6 +4,7 @@ import inspect
 import importlib
 import subprocess
 import numpy as np
+import pandas as pd
 from shutil import copyfile
 from sklearn.metrics import precision_recall_fscore_support
 
@@ -47,6 +48,7 @@ def get_lf_performance(lf: labeling_function, X: list, y: list) -> [float, float
 
 def snorkel_applier(lf_list: list, in_df):
     applier = PandasLFApplier(lfs=lf_list)
+    in_df = pd.DataFrame(in_df)
     snorkel_matrix = applier.apply(df=in_df)
     #lf_analysis = LFAnalysis(snorkel_matrix, lf_list).lf_summary()
     
@@ -56,7 +58,7 @@ def snorkel_applier(lf_list: list, in_df):
 def train_snorkel_model(snorkel_matrix, cardinality, n_epochs=500, log_freq=50, seed=42):
     snorkel_model = LabelModel(cardinality=cardinality, verbose=True)
     print("fitting snorkel model ... ")
-    snorkel_model.train_model(snorkel_matrix, n_epochs=n_epochs, log_freq=log_freq, seed=seed)
+    snorkel_model.fit(snorkel_matrix, n_epochs=n_epochs, log_freq=log_freq, seed=seed)
     return snorkel_model
 
 

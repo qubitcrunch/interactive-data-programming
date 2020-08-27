@@ -46,18 +46,27 @@ paths:
         "200":
           description: Data points weakly labeled!
         "404":
-          description: Weak labeling was not succesful. Please investigate.
+          description: Labeling functions not returned. Please investigate.
       x-openapi-router-controller: swagger_server.controllers.default_controller
   /labeling_function_new:
     post:
       summary: Provide a new labeling function.
       description: POST a new labeling function.
       operationId: labeling_function_new
+      parameters:
+      - name: labeling_function_str
+        in: query
+        description: labeling function string that the user passes
+        required: true
+        style: form
+        explode: false
+        schema:
+          type: string
       responses:
         "200":
-          description: New labeling functions provided!
+          description: New labeling function added!
         "404":
-          description: Labeling functions were not returned. Please investigate.
+          description: Labeling function not added. Please investigate.
       x-openapi-router-controller: swagger_server.controllers.default_controller
   /batch_unlabeled:
     get:
