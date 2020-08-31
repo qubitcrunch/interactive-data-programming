@@ -43,3 +43,9 @@ def weakly_label(weak="snorkel"):
         snorkel_model = train_snorkel_model(label_matrix, cardinality=project["data"]["label_cardinality"])
         snorkel_labels = snorkel_model.predict_proba(L=label_matrix)
         project["data"]["predictions"] = snorkel_labels
+    
+    if weak == "maxent":
+        all_lfs = get_lfs_from_module()
+        label_matrix = snorkel_applier(all_lfs, project["data"]["unlabeled"])
+        soft_labels = maxent(label_matrix, nclasses=project["data"]["label_cardinality"], alphas=0.9, deltas=0.1, lr=0.1, nepochs=1000)
+        project["data"]["predictions"] = soft_labels

@@ -13,6 +13,9 @@ from snorkel.labeling import labeling_function, LabelingFunction,LFAnalysis
 from snorkel.labeling.model import LabelModel
 from snorkel.labeling import PandasLFApplier
 
+import torch
+import torch.optim as optim
+import torch.nn as nn
 
 def get_lf_performance(lf: labeling_function, X: list, y: list) -> [float, float]:
     preds = np.array([lf(x) for x in X]) # pass the lf through each example
@@ -86,3 +89,85 @@ def get_lfs_from_module(module_name: str = 'qubitcrunch.labeling_functions', tar
     importlib.import_module(module_name)
     all_lfs = [obj for name, obj in inspect.getmembers(sys.modules[module_name]) if isinstance(obj, snorkel.labeling.lf.core.LabelingFunction)]
     return(all_lfs)
+
+
+
+def optimize_dual(x_tensor, w, npred_tensor, alpha_tensor, delta_tensor, lr, nepochs):
+    optimizer = optim.SGD([w], lr=lr)
+    
+    for epoch in range(nepochs):
+        ## Compute log-loss component
+        A = torch.einsum('ikj,j->ik', x_tensor, w)
+        B = torch.logsumexp(A, 1)
+        ll = torch.sum(B)
+
+        ## Alpha correction component
+        a_corr = torch.sum(npred_tensor*alpha_tensor*w)
+
+        ## L1 regularization
+        reg = torch.sum(npred_tensor*delta_tensor*torch.abs(w))
+
+        loss = ll - a_corr + reg
+
+        loss.backward()
+        optimizer.step()
+        optimizer.zero_grad()
+    return(w)
+
+## label_matrix: 2d numpy array -- #(data points) x #(labelers)
+## nclasses: number of classes/labels
+## alphas: either 1d array of length #(labelers) or a scalar
+## deltas: either 1d array of length #(labelers) or a scalar
+def maxent(label_matrix, nclasses, alphas=0.9, deltas=0.1, lr=0.1, nepochs=1000):
+    
+    _, nlabelers = label_matrix.shape
+    
+    if not isinstance(alphas, np.ndarray):
+        alphas = np.repeat(alphas, nlabelers)
+    
+    if not isinstance(deltas, np.ndarray):
+        deltas = np.repeat(deltas, nlabelers)
+    
+    
+    ## Filter for data points that have some weak labels
+    inds = np.where((np.sum(label_matrix, axis=1) + nclasses) > 0 )[0]
+
+    label_submatrix = label_matrix[inds,:]
+
+    npoints, _ = label_submatrix.shape
+    
+    ## Convert to {0,1} tensor of shape #(data points) x #(classes) x #(labelers)
+    one_hot_tensor = np.zeros((npoints, nclasses, nlabelers))
+    npreds = np.zeros(nlabelers)
+    for k in range(nclasses):
+        data_inds, labeler_inds = np.where(label_submatrix == k)
+        labelers, labeler_counts = np.unique(labeler_inds, return_counts=True)
+        npreds[labelers] += labeler_counts
+        one_hot_tensor[data_inds, np.repeat(k, len(data_inds)), labeler_inds] = 1
+    
+    
+    ## Put everything into torch tensors
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    
+    x_tensor = torch.from_numpy(one_hot_tensor).float().to(device)
+    npred_tensor = torch.from_numpy(npreds).float().to(device)
+    alpha_tensor = torch.from_numpy(alphas).float().to(device)
+    delta_tensor = torch.from_numpy(deltas).float().to(device)
+    
+    ## Optimize it!
+    ## w = lambda from notes
+    w = torch.randn(nlabelers, dtype=torch.float).to(device)
+    w.requires_grad_()
+    w = optimize_dual(x_tensor, w, npred_tensor, alpha_tensor, delta_tensor, lr, nepochs)
+    
+    ## Construct conditional probabilities
+    with torch.no_grad():
+        Z = torch.einsum('ikj,j->ik', x_tensor, w)
+        smax = nn.Softmax(dim=1)
+        P = smax(Z).cpu().numpy()
+    
+    ## Fill out full conditional probability matrix
+    ##   Everything with no weak label gets the uniform distribution
+    soft_probs = (1./nclasses)*np.ones(label_matrix.shape)
+    soft_probs[inds,:] = P
+    return(soft_probs)
