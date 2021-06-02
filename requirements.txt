@@ -54,7 +54,7 @@ tensorboardX==2.1
 threadpoolctl==2.1.0
 torch==1.6.0
 torchtext==0.7.0
-urllib3==1.25.10
+urllib3==1.26.5
 Werkzeug==1.0.1
 zipp==3.1.0
 absl-py==0.10.0
@@ -98,6 +98,6 @@ tensorboardX==2.1
 threadpoolctl==2.1.0
 torch==1.6.0
 torchtext==0.7.0
-urllib3==1.25.10
+urllib3==1.26.5
 Werkzeug==1.0.1
 zipp==3.1.0
