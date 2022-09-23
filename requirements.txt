@@ -8,7 +8,7 @@ joblib==0.16.0
 networkx==2.4
 numpy==1.19.1
 pandas==1.1.1
-protobuf==3.13.0
+protobuf==3.18.3
 python-dateutil==2.8.1
 pytz==2020.1
 scikit-learn==0.23.2
@@ -39,7 +39,7 @@ networkx==2.4
 numpy==1.19.1
 openapi-spec-validator==0.2.9
 pandas==1.1.1
-protobuf==3.13.0
+protobuf==3.18.3
 pyrsistent==0.16.0
 python-dateutil==2.8.1
 pytz==2020.1
@@ -82,7 +82,7 @@ munkres==1.1.2
 numpy==1.19.1
 openapi-spec-validator==0.2.9
 pandas==1.1.1
-protobuf==3.13.0
+protobuf==3.18.3
 pyrsistent==0.16.0
 python-dateutil==2.8.1
 pytz==2020.1
